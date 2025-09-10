@@ -1,0 +1,25 @@
+{
+  "name": "google-docs-clone",
+  "version": "1.0.0",
+  "description": "A real-time collaborative text editor like Google Docs",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "cd server && npm start",
+    "dev": "concurrently \"cd server && npm run devStart\" \"cd client && npm start\"",
+    "build": "cd client && npm run build",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "install-all": "npm run install-server && npm run install-client",
+    "heroku-postbuild": "npm run install-all && npm run build"
+  },
+  "keywords": ["google-docs", "collaborative", "text-editor", "socket.io", "react"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
