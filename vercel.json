@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "name": "google-docs-clone-client",
+  "builds": [
+    { "src": "client/package.json", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/robots.txt", "dest": "/robots.txt" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/logo(.*)", "dest": "/logo$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "REACT_APP_SERVER_URL": "https://YOUR-SERVER-URL"
+  }
+}
+
+
