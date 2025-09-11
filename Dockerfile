@@ -15,6 +15,9 @@ RUN npm run install-all
 # Copy source code
 COPY . .
 
+# Set environment variable for client build
+ENV REACT_APP_SERVER_URL=http://localhost:3001
+
 # Build the client
 RUN npm run build
 

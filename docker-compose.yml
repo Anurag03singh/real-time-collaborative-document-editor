@@ -22,6 +22,7 @@ services:
       - PORT=3001
       - MONGODB_URI=mongodb://mongodb:27017/google-docs-clone
       - CLIENT_URL=http://localhost:3000
+      - REACT_APP_SERVER_URL=http://localhost:3001
     depends_on:
       - mongodb
     volumes:
