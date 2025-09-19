@@ -2,7 +2,7 @@
   "version": 2,
   "name": "google-docs-clone",
   "builds": [
-    { "src": "client/package.json", "use": "@vercel/static-build" },
+    { "src": "client/package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } },
     { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
