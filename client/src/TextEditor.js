@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react"
 import Quill from "quill"
 import "quill/dist/quill.snow.css"
-import { io } from "socket.io-client"
 import { useParams } from "react-router-dom"
+import Pusher from "pusher-js"
 
 const SAVE_INTERVAL_MS = 2000
 const TOOLBAR_OPTIONS = [
@@ -19,67 +19,103 @@ const TOOLBAR_OPTIONS = [
 
 export default function TextEditor() {
   const { id: documentId } = useParams()
-  const [socket, setSocket] = useState()
   const [quill, setQuill] = useState()
+  const [pusher, setPusher] = useState()
+  const [channel, setChannel] = useState()
+  const [lastSaved, setLastSaved] = useState(null)
 
+  // Initialize Pusher connection
   useEffect(() => {
-    const s = io(process.env.REACT_APP_SERVER_URL || "http://localhost:3001")
-    setSocket(s)
-
+    const pusherClient = new Pusher(process.env.REACT_APP_PUSHER_KEY || "f5a316bda9db4bc7f274", {
+      cluster: process.env.REACT_APP_PUSHER_CLUSTER || "ap2",
+      forceTLS: true
+    })
+    
+    setPusher(pusherClient)
+    
     return () => {
-      s.disconnect()
+      pusherClient.disconnect()
     }
   }, [])
 
+  // Set up channel and real-time collaboration
   useEffect(() => {
-    if (socket == null || quill == null) return
+    if (pusher == null || quill == null) return
 
-    socket.once("load-document", document => {
-      quill.setContents(document)
-      quill.enable()
+    const docChannel = pusher.subscribe(`document-${documentId}`)
+    setChannel(docChannel)
+
+    // Listen for changes from other users
+    docChannel.bind("receive-changes", (delta) => {
+      quill.updateContents(delta, "api")
     })
 
-    socket.emit("get-document", documentId)
-  }, [socket, quill, documentId])
-
-  useEffect(() => {
-    if (socket == null || quill == null) return
-
-    const interval = setInterval(() => {
-      socket.emit("save-document", quill.getContents())
-    }, SAVE_INTERVAL_MS)
-
     return () => {
-      clearInterval(interval)
+      pusher.unsubscribe(`document-${documentId}`)
     }
-  }, [socket, quill])
+  }, [pusher, quill, documentId])
 
+  // Load document on mount
   useEffect(() => {
-    if (socket == null || quill == null) return
+    if (quill == null) return
 
-    const handler = delta => {
-      quill.updateContents(delta)
+    const loadDocument = async () => {
+      try {
+        const response = await fetch(`/api/documents/${documentId}`)
+        const { data } = await response.json()
+        quill.setContents(data)
+        quill.enable()
+      } catch (error) {
+        console.error("Error loading document:", error)
+        quill.setText("Error loading document")
+      }
     }
-    socket.on("receive-changes", handler)
 
-    return () => {
-      socket.off("receive-changes", handler)
-    }
-  }, [socket, quill])
+    loadDocument()
+  }, [quill, documentId])
 
+  // Handle text changes and broadcast to other users
   useEffect(() => {
-    if (socket == null || quill == null) return
+    if (quill == null || channel == null) return
 
     const handler = (delta, oldDelta, source) => {
       if (source !== "user") return
-      socket.emit("send-changes", delta)
+      
+      // Broadcast changes to other users immediately
+      channel.trigger("client-send-changes", delta)
     }
+
     quill.on("text-change", handler)
 
     return () => {
       quill.off("text-change", handler)
     }
-  }, [socket, quill])
+  }, [quill, channel])
+
+  // Auto-save document
+  useEffect(() => {
+    if (quill == null) return
+
+    const interval = setInterval(async () => {
+      try {
+        const content = quill.getContents()
+        await fetch(`/api/documents/${documentId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: content }),
+        })
+        setLastSaved(new Date().toLocaleTimeString())
+      } catch (error) {
+        console.error("Error saving document:", error)
+      }
+    }, SAVE_INTERVAL_MS)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [quill, documentId])
 
   const wrapperRef = useCallback(wrapper => {
     if (wrapper == null) return
@@ -95,5 +131,23 @@ export default function TextEditor() {
     q.setText("Loading...")
     setQuill(q)
   }, [])
-  return <div className="container" ref={wrapperRef}></div>
+
+  return (
+    <div>
+      <div className="container" ref={wrapperRef}></div>
+      {lastSaved && (
+        <div style={{ 
+          position: "fixed", 
+          bottom: "10px", 
+          right: "10px", 
+          background: "#f0f0f0", 
+          padding: "5px 10px", 
+          borderRadius: "5px",
+          fontSize: "12px"
+        }}>
+          Last saved: {lastSaved}
+        </div>
+      )}
+    </div>
+  )
 }

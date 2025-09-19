@@ -1,10 +1,12 @@
 {
   "version": 2,
-  "name": "google-docs-clone-client",
+  "name": "google-docs-clone",
   "builds": [
-    { "src": "client/package.json", "use": "@vercel/static-build" }
+    { "src": "client/package.json", "use": "@vercel/static-build" },
+    { "src": "api/*.js", "use": "@vercel/node" }
   ],
   "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/static/(.*)", "dest": "/static/$1" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/favicon.ico", "dest": "/favicon.ico" },
@@ -13,7 +15,14 @@
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "env": {
-    "REACT_APP_SERVER_URL": "https://YOUR-SERVER-URL"
+    "REACT_APP_SERVER_URL": "https://your-project-name.vercel.app",
+    "REACT_APP_PUSHER_KEY": "f5a316bda9db4bc7f274",
+    "REACT_APP_PUSHER_CLUSTER": "ap2",
+    "PUSHER_APP_ID": "2053184",
+    "PUSHER_KEY": "f5a316bda9db4bc7f274",
+    "PUSHER_SECRET": "44ae4ba5c6eeb2233060",
+    "PUSHER_CLUSTER": "ap2",
+    "MONGODB_URI": "mongodb+srv://anuragwrk03_db_user:AIWAscRhR22lwYk1@cluster0.cvdxnea.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   }
 }
 

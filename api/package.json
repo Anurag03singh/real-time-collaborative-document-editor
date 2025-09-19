@@ -1,0 +1,10 @@
+{
+  "name": "google-docs-clone-api",
+  "version": "1.0.0",
+  "description": "API functions for Google Docs clone",
+  "main": "index.js",
+  "dependencies": {
+    "mongoose": "^5.12.4",
+    "pusher": "^5.1.3"
+  }
+}
