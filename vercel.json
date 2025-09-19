@@ -15,7 +15,6 @@
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "env": {
-    "NODE_OPTIONS": "--openssl-legacy-provider",
     "REACT_APP_SERVER_URL": "https://your-project-name.vercel.app",
     "REACT_APP_PUSHER_KEY": "f5a316bda9db4bc7f274",
     "REACT_APP_PUSHER_CLUSTER": "ap2",
